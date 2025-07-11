@@ -1,27 +1,12 @@
-const express=require("express")
-
+const express=require("express");
 
 const app=express();
 
 //this will only handle get calls to /user
-app.get("/user",(req,res)=>{
+app.get("/user/:userid/:name/:password",(req,res)=>{
+    console.log(req.params);
+
     res.send({firstname:"karna",lastname:"yadav"});
-});
-
-app.post("/user",(req,res)=>{
-    res.send("data successfully saved to the database");
-});
-
-app.delete("/user",(req,res)=>{
-    res.send("data successfully deleted");
-});
-app.patch("/user",(req,res)=>{
-    res.send("data updated successfully");
-});
-
-//this will match all the http methods api calls to /hello
-app.use("/hello",(req,res)=>{
-    res.send("hello karna")
 });
 
 
