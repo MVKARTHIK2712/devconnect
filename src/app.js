@@ -9,12 +9,12 @@ app.use("/user",(req,res,next)=>{
 },
 (req,res,next)=>{
     console.log("router2 succesfull");
-    res.send("router2");
     next();
+    res.send("router2");
 },
 (req,res,next)=>{
     console.log("router3 succesfull");
-    // res.send("router3");
+    res.send("router3");
     next();
 },
 (req,res,next)=>{
