@@ -3,16 +3,14 @@ const connectdb=require("./config/database");
 const app=express();
 const User=require("./models/user")
 
+app.use(express.json());
 
 app.post("/signup", async (req, res) => {
+    console.log(req.body);
+
     // Creating new instance for user model
     try {
-        const user = new User({
-            firstName: "umesh",
-            lastName: "yadav",
-            emailId: "umesh@gmail.com",
-            password: "umesh207",
-        });
+        const user = new User(req.body);
         await user.save();
         res.status(201).send("User data added");
     } catch (err) {
@@ -20,8 +18,6 @@ app.post("/signup", async (req, res) => {
         res.status(500).send("Internal server error");
     }
 });
-
-
 
 connectdb()
     .then(() => {
