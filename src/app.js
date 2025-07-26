@@ -5,7 +5,7 @@ const User=require("./models/user")
 
 app.use(express.json());
 
-
+//signup new user
 app.post("/signup", async (req, res) => {
     console.log(req.body);
 
@@ -35,7 +35,36 @@ app.get("/user",async(req, res) => {
         res.status(400).send("something went wrong");
     }
 });
+//delete by using id
+app.delete("/user",async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        const user = await User.findByIdAndDelete(userId);
+        res.send("user deleted successfully");
+    }
+    catch(err){
+        res.status(400).send("something went wrong");
+    }
+});
+//update by using user id
+app.patch("/user",async (req, res) => {
+    const userId = req.body.userId;
+    const data= req.body;
+    try{
+        const user = await User.findByIdAndUpdate({_id:userId},data,{
+            returnDocument: "after",
+            runValidators: true,
+        });
+        console.log(user);
+        res.send("user updated successfully");
+    }
+    catch(err){
+        res.status(400).send("update failed   "+err.message);
+    }
+    
+});
 
+//get all users
 app.get("/feed",async(req,res)=>{
     try{
         const users=await User.find();
@@ -45,6 +74,8 @@ app.get("/feed",async(req,res)=>{
         res.status(400).send("something went wrong");
     }
 })
+
+
 connectdb()
     .then(() => {
         console.log("Database connection established");
