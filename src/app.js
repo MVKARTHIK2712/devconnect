@@ -1,24 +1,63 @@
 const express=require("express");
 const connectdb=require("./config/database");
 const app=express();
-const User=require("./models/user")
+const User=require("./models/user");
+const {validateSignUpData}= require("./utils/validations");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 app.use(express.json());
 
 //signup new user
 app.post("/signup", async (req, res) => {
-    console.log(req.body);
+    try {
+    // validaton of data
+    validateSignUpData(req);
+    const{firstName,lastName,emailId,password}=req.body;
+    //encrypt the password
+    const passwordHash=await bcrypt.hash(password, 10);
+    console.log(passwordHash);
 
     // Creating new instance for user model
-    try {
-        const user = new User(req.body);
+    
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: passwordHash,
+        });
         await user.save();
-        res.status(201).send("User data added");
+        res.status(201).send("User added successfully");
     } catch (err) {
-        console.error("User creation failed:", err);
-        res.status(500).send("Internal server error");
+        res.status(400).send("ERROR: " + err.message);
     }
 });
+//login user
+app.post("/login",async (req,res)=>{
+    try{
+        const {emailId, password} = req.body;
+
+        if(!validator.isEmail(emailId)){
+            throw new Error("Email is not valid");
+        }
+        const user = await User.findOne({emailId:emailId});
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if(isPasswordValid){
+            res.send("Login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    }
+    catch (err) {
+        res.status(400).send("ERROR: " + err.message);
+    }
+    
+})
 //get user by email id
 app.get("/user",async(req, res) => {
     const useremail=req.body.emailId;
