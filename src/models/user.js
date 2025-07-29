@@ -1,4 +1,6 @@
 const mongoose=require('mongoose');
+const validator=require('validator');
+
 const userSchema=new mongoose.Schema({
     firstName:{
         type:String,
@@ -15,10 +17,21 @@ const userSchema=new mongoose.Schema({
         unique:true, 
         lowercase:true,
         trim:true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Email is not valid  " +value);
+            }
+        }
+
     },
     password:{
         type:String,
         required:true,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("Password is not strong enough:"+value);
+            }
+        }
     },
     age:{
         type:Number,
@@ -34,7 +47,12 @@ const userSchema=new mongoose.Schema({
     },
     photoUrl:{
         type:String,
-        default:"https://uhs-group.com/wp-content/uploads/2020/08/person-dummy-e1553259379744.jpg"
+        default:"https://uhs-group.com/wp-content/uploads/2020/08/person-dummy-e1553259379744.jpg",
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error("Photo URL is not valid "+value);
+            }
+        }
     },
     about:{
         type:String,
