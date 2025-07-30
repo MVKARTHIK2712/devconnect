@@ -5,8 +5,13 @@ const User=require("./models/user");
 const {validateSignUpData}= require("./utils/validations");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt=require("jsonwebtoken");
+const {userAuth} = require("./middleware/auth");
+
 
 app.use(express.json());
+app.use(cookieParser());
 
 //signup new user
 app.post("/signup", async (req, res) => {
@@ -45,8 +50,12 @@ app.post("/login",async (req,res)=>{
             throw new Error("Invalid credentials");
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await user.validatePassword(password);
         if(isPasswordValid){
+            const token=await user.getJWT();
+            res.cookie("token",token,{
+                expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+            });
             res.send("Login successful");
         }
         else{
@@ -57,74 +66,31 @@ app.post("/login",async (req,res)=>{
         res.status(400).send("ERROR: " + err.message);
     }
     
-})
-//get user by email id
-app.get("/user",async(req, res) => {
-    const useremail=req.body.emailId;
-    try{
-           const user= await User.findOne({emailId:useremail});
-           if(!user) {
-               return res.status(404).send("No user found with this email");
-           }
-           else{
-                res.send(user);
-           }
-    }
-    catch(err){
-        res.status(400).send("something went wrong");
-    }
 });
-//delete by using id
-app.delete("/user",async (req, res) => {
-    const userId = req.body.userId;
-    try {
-        const user = await User.findByIdAndDelete(userId);
-        res.send("user deleted successfully");
-    }
-    catch(err){
-        res.status(400).send("something went wrong");
-    }
-});
-//update by using user id
-app.patch("/user/:userId",async (req, res) => {
-    const userId = req.params?.userId;
-    const data= req.body;
-    
+//profile api
+app.get("/profile",userAuth,async (req, res) => {
     try{
-        const ALLOWED_UPDATES = ["skills","photoUrl", "age","about","gender" ]
-        const isUpdateAllowed = Object.keys(data).every((key) =>
-            ALLOWED_UPDATES.includes(key)
-        );
-        if(!isUpdateAllowed) {
-            throw new Error("Invalid update fields");   
-        }
-        if(data?.skills.length >10){
-            throw new Error("Skills cannot be more than 10");
-        }
+        const user=req.user;
+        res.send(user);
+        
+    }
+    catch (err) {
+        res.status(400).send("ERROR: " + err.message);
+    }
 
-        const user = await User.findByIdAndUpdate({_id:userId},data,{
-            returnDocument: "after",
-            runValidators: true,
-        });
-        console.log(user);
-        res.send("user updated successfully");
-    }
-    catch(err){
-        res.status(400).send("update failed   "+err.message);
-    }
-    
+});
+//api to send connection request
+app.post("/sendConnectionRequest",userAuth,async (req, res) => {
+    const user=req.user;
+
+    //sending a connetin req
+    console.log("sending req");
+    res.send(user.firstName+"  sent the conection request");
+
 });
 
-//get all users
-app.get("/feed",async(req,res)=>{
-    try{
-        const users=await User.find();
-        res.send(users);
-    }
-    catch(err){
-        res.status(400).send("something went wrong");
-    }
-})
+
+
 
 
 connectdb()
