@@ -6,9 +6,6 @@ const User=require("../models/user");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 
-
-
-
 //signup new user
 authRouter.post("/signup", async (req, res) => {
     try {
@@ -76,6 +73,5 @@ authRouter.post("/logout",async (req,res)=>{
     }
 
 });
-
 
 module.exports = authRouter;
